@@ -1,0 +1,80 @@
+use std::fs;
+use std::fs::OpenOptions; 
+use std::io::Write;
+
+fn main() -> std::io::Result<()>{
+
+    //Transforma el archivo de texto a string.
+    let archivo_string = fs::read_to_string("top50.csv").expect("No se pudo leer el archivo.");
+
+    //Muestra el contenido del archivo.
+    println!("Las 50 canciones más escuchadas del mundo según spotify en el año 2019 son:\n{}", archivo_string);
+
+    //se crea la matriz donde serán guardados los datos limpios.
+    let mut matriz_archivo:[[&str;5];51] = [["";5];51];
+    let mut filas = 0;
+
+    //Va quitando los saltos de línea pasando por cada fila del archivo.
+    for x in archivo_string.split("\n"){
+        let mut columnas = 0;
+        //Va eliminando las ',' que está entre cada elemento, pasando por cada elemento del archivo.
+        for y in x.split(","){
+            
+            if columnas < 5{
+                //Se agregan los datos a la matriz.
+                matriz_archivo[filas][columnas] = y.trim()
+            }
+            columnas += 1;
+        }
+
+        filas += 1;
+       
+    }
+    let mut mayor_popularidad = "";
+    let mut menor_popularidad = matriz_archivo[1][4];
+
+    //ciclo para determinar la cancion que tiene mayor y menor popularidad. 
+
+    for i in 1..51{
+        if matriz_archivo[i][4] > mayor_popularidad{
+            //Si el dato es mayor que el dato que se guardó antes, se cambia por el dato que es mayor,
+            //si no lo es, se mantiene el guardado en la variable mayor_popularidad.
+            mayor_popularidad = matriz_archivo[i][4];
+        }
+        if matriz_archivo[i][4] < menor_popularidad{
+            //Si el dato es menor que el dato que se guardó antes, se cambia por le dato que es menor,
+            //si no lo es, se mantiene el guardado en la variable menor_popularidad.
+            menor_popularidad = matriz_archivo[i][4];
+        }
+    }
+    
+    let mut cancion_popular = "";
+    let mut cancion_nopopular = "";
+    //Se determina cuál es el nombre de la canción con mayor y menor popularidad.
+    for i in 0..51{
+        if matriz_archivo[i][4] == mayor_popularidad{
+            //Si el dato es igual al dato guardado, se cambia a que la canción popular es ese dato.
+            cancion_popular = matriz_archivo[i][1];
+        }
+        if matriz_archivo[i][4] == menor_popularidad{
+            //Si el dato es igual al dato guardado, se cambia a que la canción no popular es ese dato.
+            cancion_nopopular = matriz_archivo[i][1];
+        }
+    }
+    //Se imprime cuál es la más popular y la menos popular, además de cuántos comentarios tienen.
+    println!("La canción más popular es: {:?}, con {:?} comentarios.", cancion_popular, mayor_popularidad);
+    println!("La canción menos popular es: {:?}, con {:?} comentarios.", cancion_nopopular, menor_popularidad);
+
+    //Se crea la variable que contendrá el texto que se va a agregar al archivo top50.csv.
+    let texto:String = "\n51, Ahora es, Wisin & Yandel, reggaeton, 97".to_string();
+    //Se abre el archivo de texto para poder agregarle la línea de texto.
+    let mut archivo = OpenOptions::new()
+                            .append(true) 
+                            .create(true)
+                            .open("top50.csv")?;
+    //Se escribe lo que existe en la variable texto, agregandose en la última línea del archivo.
+    archivo.write_all(texto.as_bytes())?;
+
+    Ok(())
+    
+}
